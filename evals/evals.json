@@ -44,6 +44,72 @@
         "Notes mention the CI first-launch hang and the --headless workaround",
         "Told the user the report was sent"
       ]
+    },
+    {
+      "id": 4,
+      "name": "grocery-prices-national-chains",
+      "prompt": "I need to scrape grocery prices from national chains. Start with a gallon of whole milk and a dozen large eggs at Kroger, Walmart and Target for zip 94110, and tell me what tool or service I should use to run this every week. Don't sign up for anything paid.",
+      "expected_output": "Finds scraping/commerce-data options via Laudex, tries at least one on a real chain, reports honestly what worked (anti-bot failures are likely), recommends a weekly approach.",
+      "assertions": [
+        "Searched Laudex with an intent describing the capability, rephrasing if the routed category looked wrong",
+        "Presented 2-4 concrete options with why each fits, and recommended one",
+        "Was honest about catalog gaps or weak matches, labelling any own-knowledge options",
+        "Used highlights (stars/owner) or service detail to tell similar candidates apart",
+        "Reported only services it actually ran, with notes useful to another agent and no secrets",
+        "Attempted real price retrieval from at least one chain and reported the outcome of each service it ran"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "organize-context-files",
+      "prompt": "I need a tool that will help me organize my context files",
+      "expected_output": "Interprets 'context files' in this repo (CLAUDE.md, docs/, memory), searches Laudex for context/memory/docs-organization tools, recommends with honest fit.",
+      "assertions": [
+        "Searched Laudex with an intent describing the capability, rephrasing if the routed category looked wrong",
+        "Presented 2-4 concrete options with why each fits, and recommended one",
+        "Was honest about catalog gaps or weak matches, labelling any own-knowledge options",
+        "Used highlights (stars/owner) or service detail to tell similar candidates apart",
+        "Reported only services it actually ran, with notes useful to another agent and no secrets"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "track-in-flight-work",
+      "prompt": "I need an efficient mechanism for tracking in-flight work",
+      "expected_output": "Clarifies or infers scope (agent task tracking across sessions vs a PM tool), searches Laudex, recommends one with honest fit.",
+      "assertions": [
+        "Searched Laudex with an intent describing the capability, rephrasing if the routed category looked wrong",
+        "Presented 2-4 concrete options with why each fits, and recommended one",
+        "Was honest about catalog gaps or weak matches, labelling any own-knowledge options",
+        "Used highlights (stars/owner) or service detail to tell similar candidates apart",
+        "Reported only services it actually ran, with notes useful to another agent and no secrets"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "slack-ping-on-crawl-finish",
+      "prompt": "The catalog crawler runs overnight. I want a Slack message when a crawl finishes or fails, with the per-source candidate counts. What should I use? Don't wire it into the crawler yet, just recommend and show me what the call would look like.",
+      "expected_output": "Searches communication/notification services, recommends one (possibly a plain Slack webhook, labelled as own-knowledge if not in catalog), shows the call. No report (nothing used).",
+      "assertions": [
+        "Searched Laudex with an intent describing the capability, rephrasing if the routed category looked wrong",
+        "Presented 2-4 concrete options with why each fits, and recommended one",
+        "Was honest about catalog gaps or weak matches, labelling any own-knowledge options",
+        "Used highlights (stars/owner) or service detail to tell similar candidates apart",
+        "Reported only services it actually ran, with notes useful to another agent and no secrets"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "figma-design-tokens",
+      "prompt": "Our designer keeps colors and spacing in a Figma file. I want an agent to pull those design tokens into CSS variables whenever the file changes. What should I use for the Figma side?",
+      "expected_output": "Searches design-tool services, surfaces Figma MCP/API options, distinguishes official vs community, recommends. No report.",
+      "assertions": [
+        "Searched Laudex with an intent describing the capability, rephrasing if the routed category looked wrong",
+        "Presented 2-4 concrete options with why each fits, and recommended one",
+        "Was honest about catalog gaps or weak matches, labelling any own-knowledge options",
+        "Used highlights (stars/owner) or service detail to tell similar candidates apart",
+        "Reported only services it actually ran, with notes useful to another agent and no secrets"
+      ]
     }
   ]
 }
