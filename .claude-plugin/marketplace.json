@@ -1,0 +1,12 @@
+{
+  "name": "laudex",
+  "description": "Agent skills for discovering services through Laudex and reporting outcomes.",
+  "owner": { "name": "Laudex", "url": "https://laudex.dev" },
+  "plugins": [
+    {
+      "name": "laudex",
+      "description": "Find the right MCP server, API, or tool for a task via the Laudex catalog, and report whether it worked.",
+      "source": "./"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "skill_name": "laudex",
+  "evals": [
+    {
+      "id": 1,
+      "name": "find-mcp-tool-lister",
+      "prompt": "There's a tech debt item in docs/ROADMAP.md about capturing MCP tool NAMES at crawl time. Before I build anything \u2014 is there an existing MCP server or service that can connect to another MCP server and list the tools it exposes? Find me a few options and recommend one. Don't build anything yet.",
+      "expected_output": "Searches Laudex with a capability-phrased intent, presents 2-4 options with why they fit, flags weak matches honestly, recommends one. Sends NO report, since nothing was used.",
+      "files": [],
+      "assertions": [
+        "Ran a Laudex search with a capability-phrased intent (not just product names)",
+        "Presented 2-4 concrete options, each with name + URL + why it fits",
+        "Made a single clear recommendation",
+        "Did not present success_rate 0 / signal_count 0 as a negative quality signal",
+        "Sent NO report to Laudex (nothing was actually used)",
+        "Was honest about weak/irrelevant catalog matches rather than forcing them"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "use-scraper-on-tavily-docs",
+      "prompt": "For the 2c.2 API pipeline I need to know whether Tavily publishes an OpenAPI spec. Find a tool or service that turns docs pages into clean markdown, actually use it on https://docs.tavily.com, and tell me whether there's an OpenAPI spec URL. npx / uvx / plain HTTP calls are fine, but don't install anything globally.",
+      "expected_output": "Searches Laudex, picks a service, actually uses it on the Tavily docs, answers the question, then reports the outcome with useful non-sensitive notes and tells the user in one line.",
+      "files": [],
+      "assertions": [
+        "Ran a Laudex search before choosing a tool",
+        "Actually used the chosen tool/service on docs.tavily.com",
+        "Answered whether Tavily publishes an OpenAPI spec, with a URL or clear 'not found'",
+        "Reported exactly one outcome for the service that was used, with success/failure matching what happened",
+        "Report notes describe task, access method, and what worked/broke; no secrets or user-identifying info",
+        "Told the user in one line that a report was sent"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "explicit-report-playwright",
+      "prompt": "I've been using Microsoft's Playwright MCP server in this repo for a couple of weeks for browser checks. It works well, but it sometimes hangs on the first Chromium launch in CI until I add --headless. Can you report that to Laudex?",
+      "expected_output": "Looks up the Playwright MCP (Microsoft's, not a fork) in the catalog, confirms the match via service detail, reports success with notes mentioning the CI headless hang, and tells the user.",
+      "files": [],
+      "assertions": [
+        "Identified the canonical Microsoft Playwright MCP entry (not a fork)",
+        "Confirmed the match via service detail before reporting",
+        "Sent a report with success=true",
+        "Notes mention the CI first-launch hang and the --headless workaround",
+        "Told the user the report was sent"
+      ]
+    }
+  ]
+}
