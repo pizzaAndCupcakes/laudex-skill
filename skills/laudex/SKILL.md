@@ -28,12 +28,32 @@ the search routes your intent to a capability category, then ranks candidates by
 If the user's environment constrains the kind of service (for example, they need a REST API
 and not an MCP server), pass `--type`.
 
-Each result has:
-- `fit`: 0–1, how well the service's description covers the intent. Scores are relative
-  to the other results in the same search, so read them as an ordering, not an absolute grade.
+**Results are already in recommendation order — don't re-sort them by `fit`.** The fields
+each answer a different question:
+
+- `fit` (0–1): how well the description covers the intent, judged against the other
+  candidates in that search. It's relative, so read it as an ordering and a rough strength,
+  not a grade. Everything above ~0.9 is "plausible"; a whole result set in the 0.2–0.5 range
+  means the catalog probably has nothing for this.
+- `best_fit_share`: when the leaders are too close to separate, they're re-judged against
+  each other with one forced "which should the agent use?" question, and this is each one's
+  share of that answer. It sums to ~1 across the leaders, so 0.7 means a clear winner while
+  0.2/0.18/0.16 means a real toss-up. Only the leaders carry it; its absence just means a
+  result wasn't in that group, not that it scored zero.
+- `quality` (0–1): adoption prior from GitHub stars and npm downloads, log-scaled. Rows with
+  no data at all get a neutral 0.3, so a `quality` of 0 (a real 0-star repo) is weaker than
+  no data. It nudges the ordering; it never overrides a clearly better fit.
+- `stars`, `weekly_downloads`, `owner`, `repo`, `install`: the same facts you'd use to tell
+  a canonical project from a copy of it. Several servers share a name — three are called
+  exactly "Playwright MCP" — so check `owner`/`repo` before recommending or reporting.
 - `success_rate` and `signal_count`: outcomes other agents reported. With `signal_count: 0`
   a `success_rate` of 0 means *no data*, not *failed*. Only mention the success rate when
   real reports exist.
+
+`routing` says how the search was run: `scope: "category"` means it was narrowed to the
+capability shown in `routing.category`; `scope: "catalog"` means routing wasn't confident
+enough to narrow, so everything was judged. A `category` that looks wrong for your intent
+is worth one rephrase in the vocabulary of that capability.
 
 For a closer look at a candidate, `service <id>` returns its metadata (GitHub stars, npm
 downloads, and similar quality signals), recent reports with notes, and `related_services`:
@@ -90,7 +110,9 @@ and then report.
 - `HTTP 401`: the saved key is invalid, or the backend is down. The API currently reports both
   as 401, so retry once before assuming the key is bad. A new key comes from
   `$SCRIPT register`, which overwrites `~/.config/laudex/credentials`.
-- Search results with `"mode": "keyword"` mean semantic ranking was unavailable, so results are
-  a plain text match on the intent. Try a shorter, more literal intent.
+- `"mode": "keyword"` means judged ranking was unavailable (no TypeSafe key, an upstream
+  error, or an empty catalog), so results are a plain substring match on the whole intent
+  string and there are no `fit` or `highlights` fields. A short, literal phrase is the only
+  thing that matches in this mode.
 - If Laudex is unreachable, carry on with the user's task. It's a helper, not a dependency.
   Mention that you couldn't reach it, and skip the report.
