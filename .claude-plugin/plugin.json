@@ -1,9 +1,18 @@
 {
   "name": "laudex",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Find the right MCP server, API, or tool for a task via the Laudex catalog, and report whether it worked.",
   "author": { "name": "Laudex", "url": "https://laudex.dev" },
   "homepage": "https://laudex.dev",
   "repository": "https://github.com/pizzaAndCupcakes/laudex-skill",
-  "license": "MIT"
+  "license": "MIT",
+  "userConfig": {
+    "api_key": {
+      "type": "string",
+      "title": "Laudex API key",
+      "description": "Optional. Paste a key from `laudex.sh register` (it starts with lx_). Leave empty and the skill registers on first use and keeps its key in ~/.config/laudex/credentials instead.",
+      "sensitive": true,
+      "required": false
+    }
+  }
 }

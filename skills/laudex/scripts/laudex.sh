@@ -6,8 +6,9 @@
 #   laudex.sh report <service_id> success|failure "<notes>" [--dry-run]
 #   laudex.sh register [email]
 #
-# API key: $LAUDEX_API_KEY, else ~/.config/laudex/credentials. If neither exists,
-# the first call registers a new agent and saves the key there.
+# API key: $LAUDEX_API_KEY (the plugin's SessionStart hook sets it from the
+# plugin's settings), else ~/.config/laudex/credentials. If neither exists, the
+# first call registers a new agent and saves the key there.
 # Base URL: $LAUDEX_URL (default https://laudex.dev).
 # LAUDEX_REPORTING=off turns report into a no-op; --dry-run prints what it would send.
 
@@ -78,26 +79,53 @@ call() {
 }
 
 # Notes are shown to other agents. SKILL.md tells the agent what to leave out;
-# this is the backstop for what slips through. Home and temp paths, emails,
-# private-network URLs and secret-shaped tokens are replaced, newlines are
-# flattened, and the caller announces any change on stderr.
+# this is the backstop for what slips through: secrets, emails, private-network
+# addresses and the user's file paths are replaced, newlines are flattened, and
+# the caller announces any change on stderr. Plain sed -E, so it behaves the
+# same on macOS and Linux. Tests: tests/scrub_notes.sh.
+#
+# Three things are deliberately kept, because they are facts about a tool:
+# git@host: SSH remotes, /tmp/<name> directories a tool writes into, and
+# environment variable NAMES (only the value after `=` is replaced).
 NOTES_MAX=600
 flatten() { printf '%s' "$1" | tr '\n\r\t' '   '; }
+# The end of a path or URL: no trailing quote, bracket or sentence punctuation.
+TAIL='[^[:space:])>";,]*[^[:space:])>";,.]'
 scrub_notes() {
   flatten "$1" | sed -E \
     -e 's!(sk|pk|rk)-[A-Za-z0-9_-]{16,}!<secret>!g' \
+    -e 's!(sk|pk|rk)_(live|test)_[A-Za-z0-9]{8,}!<secret>!g' \
+    -e 's!whsec_[A-Za-z0-9]{16,}!<secret>!g' \
     -e 's!gh[pousr]_[A-Za-z0-9]{20,}!<secret>!g' \
     -e 's!github_pat_[A-Za-z0-9_]{20,}!<secret>!g' \
+    -e 's!glpat-[A-Za-z0-9_-]{16,}!<secret>!g' \
+    -e 's!npm_[A-Za-z0-9]{30,}!<secret>!g' \
+    -e 's!hf_[A-Za-z0-9]{30,}!<secret>!g' \
+    -e 's!AIza[0-9A-Za-z_-]{30,}!<secret>!g' \
     -e 's!lx_[0-9a-f]{32}!<secret>!g' \
     -e 's!AKIA[0-9A-Z]{16}!<secret>!g' \
     -e 's!xox[abprs]-[A-Za-z0-9-]{10,}!<secret>!g' \
     -e 's!eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+!<secret>!g' \
     -e 's![Bb]earer [A-Za-z0-9._~+/=-]{16,}!Bearer <secret>!g' \
-    -e 's!https?://(localhost|127\.[0-9.]+|0\.0\.0\.0|10\.[0-9.]+|192\.168\.[0-9.]+|172\.(1[6-9]|2[0-9]|3[01])\.[0-9.]+|[A-Za-z0-9.-]+\.(internal|local|lan|corp|intranet))(:[0-9]+)?([^[:space:])>";,]*[^[:space:])>";,.])?!<internal-url>!g' \
+    -e 's!([A-Za-z0-9_]*([Kk][Ee][Yy]|[Tt][Oo][Kk][Ee][Nn]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Pp][Aa][Ss][Ss][Ww]([Oo][Rr])?[Dd]|PWD)[A-Za-z0-9_]*)=[^[:space:]"'"'"',;)]+!\1=<secret>!g' \
+    -e 's!([a-z][a-z0-9+.-]*://)[^/@:[:space:]]*:[^/@[:space:]]+@!\1<secret>@!g' \
+    -e 's!([A-Za-z0-9]{32,})!<<lxt:\1:lxt>>!g' \
+    -e 's!<<lxt:([A-Za-z]+):lxt>>!\1!g' \
+    -e 's!<<lxt:([0-9]+):lxt>>!\1!g' \
+    -e 's!<<lxt:[A-Za-z0-9]+:lxt>>!<secret>!g' \
+    -e 's!https?://(localhost|127\.[0-9.]+|0\.0\.0\.0|10\.[0-9.]+|192\.168\.[0-9.]+|172\.(1[6-9]|2[0-9]|3[01])\.[0-9.]+|[A-Za-z0-9.-]+\.(internal|local|lan|corp|intranet))(:[0-9]+)?('"$TAIL"')?!<internal-url>!g' \
+    -e 's!(^|[^A-Za-z0-9._%+-])git@([A-Za-z0-9.-]+\.[A-Za-z]{2,})([:/])!\1<<lxgit>>\2\3!g' \
     -e 's![A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}!<email>!g' \
-    -e 's!(/Users|/home|/root|/private|/tmp|/var/folders)/[^[:space:])>";,]*[^[:space:])>";,.]!<path>!g' \
-    -e 's!~/[^[:space:])>";,]*[^[:space:])>";,.]!<path>!g' \
-    -e 's![A-Za-z]:\\[^[:space:])>";,]*[^[:space:])>";,.]!<path>!g'
+    -e 's!<<lxgit>>[A-Za-z0-9.-]+\.(internal|local|lan|corp|intranet)[:/]('"$TAIL"')?!<internal-url>!g' \
+    -e 's!<<lxgit>>!git@!g' \
+    -e 's!(^|[^0-9A-Za-z.])((10|127)\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|192\.168\.[0-9]{1,3}\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3}|0\.0\.0\.0)(:[0-9]+)?!\1<internal-host>!g' \
+    -e 's!(^|[^A-Za-z0-9_./-])/tmp/([A-Za-z0-9_-]+)([^A-Za-z0-9_./-]|\.[[:space:]]|\.$|$)!\1<<lxtmp>>\2\3!g' \
+    -e 's!(^|[^A-Za-z0-9_.:/~-])(/Users|/home|/root|/private|/tmp|/var/folders|/workspace|/opt|/Volumes|/mnt|/srv)/'"$TAIL"'!\1<path>!g' \
+    -e 's!(^|[^A-Za-z0-9_./-])~/'"$TAIL"'!\1<path>!g' \
+    -e 's!(^|[^A-Za-z0-9_./~-])\.\.?/'"$TAIL"'!\1<path>!g' \
+    -e 's!(^|[^A-Za-z0-9_])[A-Za-z]:\\'"$TAIL"'!\1<path>!g' \
+    -e 's!(^|[^A-Za-z0-9_./-])[A-Za-z0-9_][A-Za-z0-9._-]*\.(docx|doc|xlsx|xls|pptx|ppt|pdf|csv|tsv|key|pem|p12|pfx|sqlite|db)([^A-Za-z0-9]|$)!\1<path>\3!g' \
+    -e 's!<<lxtmp>>!/tmp/!g'
 }
 
 urlencode() {
@@ -165,7 +193,12 @@ case "$cmd" in
       notes="${notes:0:$NOTES_MAX}"
       echo "laudex: notes cut to $NOTES_MAX characters" >&2
     fi
-    body=$(json_obj service_id "$id" success "json:$ok" notes "$notes")
+    # No note means no notes field, rather than an empty string stored as one.
+    if [ -n "$notes" ]; then
+      body=$(json_obj service_id "$id" success "json:$ok" notes "$notes")
+    else
+      body=$(json_obj service_id "$id" success "json:$ok")
+    fi
     if [ "$dry" -eq 1 ]; then
       printf '%s\n' "$body"
       echo "laudex: dry run, nothing sent" >&2
@@ -178,7 +211,7 @@ case "$cmd" in
     register "${1:-}"
     ;;
   *)
-    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
     ;;
 esac
