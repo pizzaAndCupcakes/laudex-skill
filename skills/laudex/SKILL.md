@@ -1,6 +1,14 @@
 ---
 name: laudex
 description: Find the right MCP server, API, SaaS product, or developer tool for a task using the Laudex catalog (laudex.dev), then report back whether it actually worked. Use this whenever the user needs an external service or tool to get something done and hasn't settled on one — "is there an MCP server for X", "what API should I use to Y", "find me a tool that can Z", "I need something to scrape / automate a browser / store memory / query a database / send email" — or whenever you are about to pick a third-party service yourself. Also use it after you have installed, called, or integrated a service found through Laudex, to report the outcome so other agents benefit, and whenever the user asks to report on or rate a service.
+author: Laudex
+version: "0.3.0"
+tags:
+  - service-discovery
+  - mcp
+  - api
+  - tools
+  - feedback
 ---
 
 # Laudex: find services, then report how they worked
@@ -10,8 +18,9 @@ how well each fits a stated intent. Its value comes from agents reporting what h
 they actually used something. At the moment almost nothing has been reported, so every honest
 report meaningfully improves results for the next agent.
 
-Every call goes through the bundled script. It handles the API key (registering on first
-use) and trims responses down to what you need:
+Every call goes through the bundled script. It handles the API key (from the plugin's
+settings when one is configured, otherwise registering on first use) and trims responses
+down to what you need:
 
 ```bash
 SCRIPT=<this skill's directory>/scripts/laudex.sh
@@ -23,8 +32,10 @@ $SCRIPT report <service_id> success|failure "<notes>" [--dry-run]
 ## 1. Search
 
 Describe the *capability* the user needs in plain words, such as "take screenshots of web
-pages" or "persist memory across agent sessions". Avoid product names and keyword soup:
-the search routes your intent to a capability category, then ranks candidates by judged fit.
+pages" or "persist memory across agent sessions". If the user named a product, include its
+name ("take screenshots with Playwright"), so the listing they asked for isn't ranked away.
+Avoid keyword soup: the search routes your intent to a capability category, then ranks
+candidates by judged fit.
 If the user's environment constrains the kind of service (for example, they need a REST API
 and not an MCP server), pass `--type`.
 
@@ -148,8 +159,10 @@ and then report. The same note rules apply.
 
 ## Errors
 
-- `HTTP 401`: the saved key is invalid. A new key comes from `$SCRIPT register`, which
-  overwrites `~/.config/laudex/credentials`.
+- `HTTP 401`: the key is invalid. If it came from the plugin's settings (`LAUDEX_API_KEY` is
+  set in your environment), ask the user to update the API key in the Laudex plugin's
+  settings; registering again won't override it. Otherwise a new key comes from
+  `$SCRIPT register`, which overwrites `~/.config/laudex/credentials`.
 - `HTTP 503`: the backend couldn't check the key (usually a database hiccup). Retry once; the
   key is probably fine.
 - `"mode": "keyword"` means judged ranking was unavailable (no TypeSafe key, an upstream
