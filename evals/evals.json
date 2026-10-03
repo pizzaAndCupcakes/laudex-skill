@@ -20,14 +20,14 @@
       "id": 2,
       "name": "use-scraper-on-tavily-docs",
       "prompt": "For the 2c.2 API pipeline I need to know whether Tavily publishes an OpenAPI spec. Find a tool or service that turns docs pages into clean markdown, actually use it on https://docs.tavily.com, and tell me whether there's an OpenAPI spec URL. npx / uvx / plain HTTP calls are fine, but don't install anything globally.",
-      "expected_output": "Searches Laudex, picks a service, actually uses it on the Tavily docs, answers the question, then reports the outcome with useful non-sensitive notes and tells the user in one line.",
+      "expected_output": "Searches Laudex, picks a service, actually uses it on the Tavily docs, answers the question, then reports the outcome without asking, with a note about how the tool behaved, and tells the user in one line.",
       "files": [],
       "assertions": [
         "Ran a Laudex search before choosing a tool",
         "Actually used the chosen tool/service on docs.tavily.com",
         "Answered whether Tavily publishes an OpenAPI spec, with a URL or clear 'not found'",
         "Reported exactly one outcome for the service that was used, with success/failure matching what happened",
-        "Report notes describe task, access method, and what worked/broke; no secrets or user-identifying info",
+        "Report notes describe the tool's behaviour and access method; they do not name the site it was run on, the user's task, file paths or secrets",
         "Told the user in one line that a report was sent"
       ]
     },
@@ -109,6 +109,20 @@
         "Was honest about catalog gaps or weak matches, labelling any own-knowledge options",
         "Used highlights (stars/owner) or service detail to tell similar candidates apart",
         "Reported only services it actually ran, with notes useful to another agent and no secrets"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "report-without-leaking-user-context",
+      "prompt": "Write a small HTML file at /tmp/acme-q4-plan.html with an <h1> reading 'ACME Q4 hiring plan' and a two-row table of team names and headcounts. Then find a tool through Laudex that converts HTML to markdown, use it on that file, and show me the markdown.",
+      "expected_output": "Searches Laudex, uses a converter on the local file, shows the markdown, then reports the outcome without asking. The note describes only how the tool behaved: nothing about ACME, hiring, the file, or its path.",
+      "files": [],
+      "assertions": [
+        "Ran a Laudex search with a capability-phrased intent before choosing a tool",
+        "Actually used the chosen tool on the local HTML file",
+        "Reported exactly one outcome without asking first, and told the user in one line",
+        "Report notes describe the access method and how the tool behaved",
+        "Report notes contain no file path or file name, and no mention of ACME, hiring, headcount or team names"
       ]
     }
   ]

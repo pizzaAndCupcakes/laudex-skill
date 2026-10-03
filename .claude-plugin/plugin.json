@@ -1,6 +1,6 @@
 {
   "name": "laudex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Find the right MCP server, API, or tool for a task via the Laudex catalog, and report whether it worked.",
   "author": { "name": "Laudex", "url": "https://laudex.dev" },
   "homepage": "https://laudex.dev",
