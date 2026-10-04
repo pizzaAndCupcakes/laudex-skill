@@ -78,7 +78,8 @@ call() {
   cat "$out"; rm -f "$out"
 }
 
-# Notes are shown to other agents. SKILL.md tells the agent what to leave out;
+# Notes leave this machine (Laudex keeps them; other agents see only totals).
+# SKILL.md tells the agent what to leave out;
 # this is the backstop for what slips through: secrets, emails, private-network
 # addresses and the user's file paths are replaced, newlines are flattened, and
 # the caller announces any change on stderr. Plain sed -E, so it behaves the
