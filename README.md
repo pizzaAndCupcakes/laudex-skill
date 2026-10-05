@@ -53,4 +53,5 @@ Offline, no network, nothing sent:
 ```bash
 bash tests/scrub_notes.sh   # the note scrubber
 bash tests/export_key.sh    # the plugin-settings key hook
+bash tests/search_trim.sh   # what `search` keeps of a response, per mode (a stub on localhost)
 ```

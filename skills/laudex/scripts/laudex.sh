@@ -153,13 +153,14 @@ case "$cmd" in
     if have jq; then
       # glama_url and credit survive the trim: Glama's licence asks for both
       # wherever one of its records is shown.
-      printf '%s' "$resp" | jq '{mode, routing: (.routing // null | if . then {category, scope, confidence, candidates_considered} else null end),
+      # `note` survives too: when a search was not judged, it says why.
+      printf '%s' "$resp" | jq '{mode, note, routing: (.routing // null | if . then {category, scope, confidence, candidates_considered} else null end),
         credit: ([.results[].attribution.credit // empty] | first),
         results: [.results[] | {id: .service.id, name: .service.name, type: .service.type, url: .service.url,
           description: ((.service.description // "") | .[0:240]),
           owner: .highlights.owner, repo: .highlights.repo, stars: .highlights.stars,
           weekly_downloads: .highlights.weekly_downloads, install: .highlights.install,
-          fit: .score.fit, best_fit_share: .score.best_fit_share, quality: .score.quality,
+          fit: .score.fit, best_fit_share: .score.best_fit_share, similarity: .score.similarity, quality: .score.quality,
           success_rate: .score.success_rate, signal_count: .score.signal_count,
           glama_url: .attribution.glama_url}
           | with_entries(select(.value != null))]}
