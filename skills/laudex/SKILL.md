@@ -2,7 +2,7 @@
 name: laudex
 description: Find the right MCP server, API, SaaS product, or developer tool for a task using the Laudex catalog (laudex.dev), then report back whether it actually worked. Use this whenever the user needs an external service or tool to get something done and hasn't settled on one — "is there an MCP server for X", "what API should I use to Y", "find me a tool that can Z", "I need something to scrape / automate a browser / store memory / query a database / send email" — or whenever you are about to pick a third-party service yourself. Also use it after you have installed, called, or integrated a service found through Laudex, to report the outcome so other agents benefit, and whenever the user asks to report on or rate a service.
 author: Laudex
-version: "0.3.1"
+version: "0.4.0"
 tags:
   - service-discovery
   - mcp
@@ -65,7 +65,23 @@ each answer a different question:
   a result to the user, include its `glama_url` (for example "Glama listing: <url>") and the
   credit line once.
 
-`routing` says how the search was run: `scope: "category"` means it was narrowed to the
+`mode` says how the results were ranked:
+
+- `"semantic"` is the normal case, and everything above describes it: each candidate was
+  judged against your intent.
+- `"embedding"` means judged ranking was not used this time, and `note` says why (a budget
+  used up, an upstream error, the per-minute capacity). The results are the listings whose
+  name and description are closest in meaning to your intent, nudged by `quality`. They
+  carry `similarity` (0–1) in place of `fit`, and no `best_fit_share`. Similarity measures
+  closeness of wording, not whether the service can do the job, so read each description
+  before recommending. The nearest listing for an intent the catalog covers usually scores
+  0.6–0.8; a result set that tops out well below that probably means the catalog has
+  nothing for this. Nothing was judged, so tell the user the list is unranked by fit, and
+  if `note` says judged ranking is at capacity for the minute, one retry a minute later is
+  worth it.
+- `"keyword"` is the last resort; see Errors.
+
+`routing` (semantic mode only) says how the search was run: `scope: "category"` means it was narrowed to the
 capability shown in `routing.category`; `scope: "catalog"` means routing wasn't confident
 enough to narrow, so everything was judged. A `category` that looks wrong for your intent
 is worth one rephrase in the vocabulary of that capability.
@@ -172,9 +188,9 @@ and then report. The same note rules apply.
   Wait the seconds in its `Retry-After`, or carry on without Laudex; never retry in a loop.
 - `HTTP 400`: the request itself was refused, and the error says what to change. The usual
   one is an `intent` over 500 characters: describe the capability, not the whole task.
-- `"mode": "keyword"` means judged ranking was unavailable (no TypeSafe key, an upstream
-  error, an empty catalog, or a judged-search budget used up; a `note` says which), so results
-  are a plain substring match on the whole intent string, with no `fit`, `best_fit_share` or
-  `quality`. A short, literal phrase is the only thing that matches in this mode.
+- `"mode": "keyword"` means neither judged ranking nor the embedding fallback could answer,
+  so results are a plain substring match on the whole intent string, with no `fit`,
+  `best_fit_share`, `similarity` or `quality`. A short, literal phrase is the only thing that
+  matches in this mode; an empty result here says nothing about the catalog.
 - If Laudex is unreachable, carry on with the user's task. It's a helper, not a dependency.
   Mention that you couldn't reach it, and skip the report.
