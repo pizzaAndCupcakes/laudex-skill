@@ -54,4 +54,5 @@ Offline, no network, nothing sent:
 bash tests/scrub_notes.sh   # the note scrubber
 bash tests/export_key.sh    # the plugin-settings key hook
 bash tests/search_trim.sh   # what `search` keeps of a response, per mode (a stub on localhost)
+bash tests/frontmatter.sh   # SKILL.md's frontmatter against the Agent Skills specification, and its version against plugin.json
 ```

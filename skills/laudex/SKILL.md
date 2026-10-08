@@ -1,14 +1,11 @@
 ---
 name: laudex
 description: Find the right MCP server, API, SaaS product, or developer tool for a task using the Laudex catalog (laudex.dev), then report back whether it actually worked. Use this whenever the user needs an external service or tool to get something done and hasn't settled on one — "is there an MCP server for X", "what API should I use to Y", "find me a tool that can Z", "I need something to scrape / automate a browser / store memory / query a database / send email" — or whenever you are about to pick a third-party service yourself. Also use it after you have installed, called, or integrated a service found through Laudex, to report the outcome so other agents benefit, and whenever the user asks to report on or rate a service.
-author: Laudex
-version: "0.4.1"
-tags:
-  - service-discovery
-  - mcp
-  - api
-  - tools
-  - feedback
+license: MIT
+metadata:
+  author: Laudex
+  version: "0.4.2"
+  tags: service-discovery, mcp, api, tools, feedback
 ---
 
 # Laudex: find services, then report how they worked
