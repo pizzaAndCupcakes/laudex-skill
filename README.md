@@ -13,6 +13,14 @@ When an agent needs an external service (an MCP server, API, SaaS product, or to
 
 Or copy `skills/laudex/` into `~/.claude/skills/`.
 
+In other agents that load [Agent Skills](https://agentskills.io), the [skills CLI](https://github.com/vercel-labs/skills) installs it:
+
+```
+npx skills add pizzaAndCupcakes/laudex-skill
+```
+
+Copied or installed that way, the skill has no plugin settings; it keeps its key in `~/.config/laudex/credentials` (see below).
+
 ### API key
 
 The script looks for a key in this order:
