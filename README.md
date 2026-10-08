@@ -17,7 +17,7 @@ Or copy `skills/laudex/` into `~/.claude/skills/`.
 
 The script looks for a key in this order:
 
-1. **Plugin settings** (plugin installs). Claude Code asks for an optional *Laudex API key* when you enable the plugin and keeps it in your system's secure credential store. A `SessionStart` hook (`hooks/export-key.sh`) exports it as `LAUDEX_API_KEY` for the session's shell commands; it accepts only the `lx_<32 hex>` format and never prints the key. Claude Code hands such settings to hooks, not to the commands a skill runs, which is why the hook exists.
+1. **Plugin settings** (plugin installs). Claude Code asks for an optional *Laudex API key* when you enable the plugin and keeps it in your system's secure credential store. A `SessionStart` hook (`hooks/export-key.sh`) exports it as `LAUDEX_API_KEY` for the session's shell commands; it accepts only the `lx_<32 hex>` format and never prints the key. Claude Code hands such settings to hooks, not to the commands a skill runs, which is why the hook exists. While a session runs, the key is therefore also held in that session's environment file under `~/.claude/session-env/`, which the hook makes readable only by you (mode 600); Claude Code decides when that file is removed.
 2. **`LAUDEX_API_KEY`** in your own environment.
 3. **`~/.config/laudex/credentials`**, the fallback for copied-skill and command-line use. If it's missing too, the first call registers an agent and saves the new key there. Set `LAUDEX_EMAIL` before first use to attach an email.
 
