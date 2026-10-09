@@ -21,6 +21,10 @@ npx skills add pizzaAndCupcakes/laudex-skill
 
 Copied or installed that way, the skill has no plugin settings; it keeps its key in `~/.config/laudex/credentials` (see below).
 
+### Where the network is restricted (claude.ai chat)
+
+The skill reaches Laudex by running its script, so it needs `laudex.dev` to be reachable from wherever the agent runs commands. Claude Code reaches it. A claude.ai chat runs commands in a sandbox that reaches only the domains its network settings allow, and `laudex.dev` is not among them by default. There the agent says it could not reach Laudex and carries on without it. To use the skill in chat, allow `laudex.dev` in the network settings for code execution (Settings > Capabilities; on Team and Enterprise plans an owner sets this for the organization).
+
 ### API key
 
 The script looks for a key in this order:
