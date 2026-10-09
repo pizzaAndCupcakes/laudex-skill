@@ -4,7 +4,7 @@ description: Find the right MCP server, API, SaaS product, or developer tool for
 license: MIT
 metadata:
   author: Laudex
-  version: "0.4.3"
+  version: "0.4.4"
   tags: service-discovery, mcp, api, tools, feedback
 ---
 
@@ -191,3 +191,7 @@ and then report. The same note rules apply.
   matches in this mode; an empty result here says nothing about the catalog.
 - If Laudex is unreachable, carry on with the user's task. It's a helper, not a dependency.
   Mention that you couldn't reach it, and skip the report.
+- If what refused the request is your own environment's network rules (a sandbox that
+  reaches only an allowlist of domains, as a claude.ai chat does), one failed call is
+  enough: don't look for another route to the API. Tell the user that allowing `laudex.dev`
+  in the network settings for code execution is what makes the skill work there, then carry on.
