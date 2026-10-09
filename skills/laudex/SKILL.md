@@ -4,7 +4,7 @@ description: Find the right MCP server, API, SaaS product, or developer tool for
 license: MIT
 metadata:
   author: Laudex
-  version: "0.4.2"
+  version: "0.4.3"
   tags: service-discovery, mcp, api, tools, feedback
 ---
 
