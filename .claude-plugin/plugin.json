@@ -5,6 +5,9 @@
   "author": { "name": "Laudex", "url": "https://laudex.dev" },
   "homepage": "https://laudex.dev",
   "repository": "https://github.com/pizzaAndCupcakes/laudex-skill",
+  "documentationUrl": "https://github.com/pizzaAndCupcakes/laudex-skill#readme",
+  "supportUrl": "https://github.com/pizzaAndCupcakes/laudex-skill/issues",
+  "privacyPolicyUrl": "https://laudex.dev/privacy",
   "license": "MIT",
   "userConfig": {
     "api_key": {
