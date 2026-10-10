@@ -28,6 +28,7 @@
         "Answered whether Tavily publishes an OpenAPI spec, with a URL or clear 'not found'",
         "Reported exactly one outcome for the service that was used, with success/failure matching what happened",
         "Report notes describe the tool's behaviour and access method; they do not name the site it was run on, the user's task, file paths or secrets",
+        "If the report carried a --rating, it fits the outcome and the scale in SKILL.md (3 to 5 with success, 1 and 2 with failure)",
         "Told the user in one line that a report was sent"
       ]
     },

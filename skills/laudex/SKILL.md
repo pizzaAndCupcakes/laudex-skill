@@ -4,7 +4,7 @@ description: Find the right MCP server, API, SaaS product, or developer tool for
 license: MIT
 metadata:
   author: Laudex
-  version: "0.4.4"
+  version: "0.5.0"
   tags: service-discovery, mcp, api, tools, feedback
 ---
 
@@ -23,7 +23,7 @@ down to what you need:
 SCRIPT=<this skill's directory>/scripts/laudex.sh
 $SCRIPT search "<intent>" [--type mcp_server|api|tool|saas|other] [--limit N]
 $SCRIPT service <service_id>                         # full detail, report totals, sibling access methods
-$SCRIPT report <service_id> success|failure "<notes>" [--dry-run]
+$SCRIPT report <service_id> success|failure "<notes>" [--rating 1-5] [--dry-run]
 ```
 
 ## 1. Search
@@ -57,6 +57,10 @@ each answer a different question:
 - `success_rate` and `signal_count`: outcomes other agents reported. With `signal_count: 0`
   a `success_rate` of 0 means *no data*, not *failed*. Only mention the success rate when
   real reports exist.
+- `rating_average` and `rating_count`: the average 1 to 5 rating over the reports that carried
+  one, and how many did. `rating_count: 0` means nobody rated it, and then no average is shown.
+  A success can carry a 3 ("worked only after a workaround"), so a high success rate beside an
+  average near 3 means it works but needs effort. Read it with the rating scale below.
 - `glama_url` and the top-level `credit`: part of that listing's data comes from Glama, whose
   licence asks for credit and a link to the listing wherever it is shown. When you show such
   a result to the user, include its `glama_url` (for example "Glama listing: <url>") and the
@@ -134,13 +138,38 @@ Judge the service, not the session. If something failed because of your own mist
 user's environment, or a change of plans that had nothing to do with the service, it isn't a
 failure of the service. Either don't report, or report success when the service did work
 once used correctly. If the result was mixed, pick the outcome that best reflects whether
-you'd recommend it for this kind of task, and put the nuance in the notes.
+you'd recommend it for this kind of task, give it a rating that says how mixed (below), and put
+the specifics in the notes.
+
+### Rating (optional)
+
+Add `--rating N` with a whole number from 1 to 5 beside the outcome, if you can tell how well
+it went. Leave it out if you can't; a report without a rating is accepted. The scale is
+Laudex's own, so rate against it, not against how you felt about the task:
+
+```
+How well the service worked, from 1 to 5:
+5  installed and started by its own instructions and did what the task needed, first try
+4  worked, with a small snag anyone gets past in a minute
+3  worked only after a workaround its instructions do not give
+2  started, but the calls the task needed failed, or it lacks what its description claims
+1  did not install or did not start by its own instructions
+3 to 5 go with success, 1 and 2 with failure.
+```
+
+So a 3, 4 or 5 goes with `success` and a 1 or 2 with `failure`. The script refuses a rating that
+contradicts the outcome (such as `success` with 2) before sending anything, and says why;
+fix the pair and run it again. For example:
+
+```bash
+$SCRIPT report <service_id> success "Ran via npx; needed an API key env var" --rating 4
+```
 
 ### What the note may contain
 
 The note is about **how the tool behaved**, never about the user's work. Laudex keeps it to
-understand failures; other agents see only each service's success rate and report count, not
-the note. It is still sent off this machine, so the rules below hold. One to three sentences,
+understand failures; other agents see only each service's success rate and report count, and
+the average rating and number of rated reports, not the note. It is still sent off this machine, so the rules below hold. One to three sentences,
 covering any of:
 
 - the access method: npx/uvx package, hosted endpoint, REST API, SDK, and the version if you know it

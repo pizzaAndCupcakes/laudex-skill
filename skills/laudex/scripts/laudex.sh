@@ -3,7 +3,7 @@
 #
 #   laudex.sh search "<intent>" [--type mcp_server|api|tool|saas|other] [--limit N]
 #   laudex.sh service <service_id>
-#   laudex.sh report <service_id> success|failure "<notes>" [--dry-run]
+#   laudex.sh report <service_id> success|failure "<notes>" [--rating 1-5] [--dry-run]
 #   laudex.sh register [email]
 #
 # API key: $LAUDEX_API_KEY (the plugin's SessionStart hook sets it from the
@@ -11,6 +11,8 @@
 # first call registers a new agent and saves the key there.
 # Base URL: $LAUDEX_URL (default https://laudex.dev).
 # LAUDEX_REPORTING=off turns report into a no-op; --dry-run prints what it would send.
+# --rating is optional: a whole number from 1 to 5, 3 to 5 with success, 1 and 2 with
+# failure (the scale is in SKILL.md). A rating the server would refuse is refused here.
 
 set -euo pipefail
 
@@ -162,6 +164,7 @@ case "$cmd" in
           weekly_downloads: .highlights.weekly_downloads, install: .highlights.install,
           fit: .score.fit, best_fit_share: .score.best_fit_share, similarity: .score.similarity, quality: .score.quality,
           success_rate: .score.success_rate, signal_count: .score.signal_count,
+          rating_average: .score.rating_average, rating_count: .score.rating_count,
           glama_url: .attribution.glama_url}
           | with_entries(select(.value != null))]}
         | with_entries(select(.value != null))'
@@ -174,17 +177,37 @@ case "$cmd" in
     call GET "/api/services/$1"
     ;;
   report)
-    [ $# -ge 2 ] || die 'usage: laudex.sh report <service_id> success|failure "<notes>" [--dry-run]'
+    [ $# -ge 2 ] || die 'usage: laudex.sh report <service_id> success|failure "<notes>" [--rating 1-5] [--dry-run]'
     id="$1"; outcome="$2"; shift 2
-    raw=""; dry=0
-    for arg in "$@"; do
-      if [ "$arg" = "--dry-run" ]; then dry=1; else raw="$arg"; fi
+    raw=""; dry=0; rating=""; rating_given=0
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --dry-run) dry=1; shift ;;
+        --rating)
+          [ $# -ge 2 ] || die "--rating needs a whole number from 1 to 5"
+          rating="$2"; rating_given=1; shift 2 ;;
+        *) raw="$1"; shift ;;
+      esac
     done
     case "$outcome" in
       success|true) ok=true ;;
       failure|false) ok=false ;;
       *) die "outcome must be success or failure, got: $outcome" ;;
     esac
+    # The server's rule, checked here first so a mistake is explained and the
+    # report is not lost to a 400: a whole number 1 to 5, 3 to 5 with success,
+    # 1 and 2 with failure. No --rating at all is always fine.
+    if [ "$rating_given" = 1 ]; then
+      case "$rating" in
+        [1-5]) ;;
+        *) die "rating must be a whole number from 1 to 5, got: '$rating'" ;;
+      esac
+      if [ "$ok" = true ] && [ "$rating" -lt 3 ]; then
+        die "rating $rating cannot go with success. Ratings 3 to 5 go with success, 1 and 2 with failure"
+      elif [ "$ok" = false ] && [ "$rating" -gt 2 ]; then
+        die "rating $rating cannot go with failure. Ratings 3 to 5 go with success, 1 and 2 with failure"
+      fi
+    fi
     case "${LAUDEX_REPORTING:-on}" in
       off|false|0|no) echo "laudex: reporting is off (LAUDEX_REPORTING); nothing sent" >&2; exit 0 ;;
     esac
@@ -195,12 +218,12 @@ case "$cmd" in
       notes="${notes:0:$NOTES_MAX}"
       echo "laudex: notes cut to $NOTES_MAX characters" >&2
     fi
-    # No note means no notes field, rather than an empty string stored as one.
-    if [ -n "$notes" ]; then
-      body=$(json_obj service_id "$id" success "json:$ok" notes "$notes")
-    else
-      body=$(json_obj service_id "$id" success "json:$ok")
-    fi
+    # No note means no notes field, rather than an empty string stored as one;
+    # likewise no rating means no rating field (the server reads it as "not given").
+    fields=(service_id "$id" success "json:$ok")
+    [ "$rating_given" = 0 ] || fields+=(rating "json:$rating")
+    [ -z "$notes" ] || fields+=(notes "$notes")
+    body=$(json_obj "${fields[@]}")
     if [ "$dry" -eq 1 ]; then
       printf '%s\n' "$body"
       echo "laudex: dry run, nothing sent" >&2

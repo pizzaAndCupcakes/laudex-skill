@@ -22,12 +22,12 @@ highlights='{"owner":"microsoft","repo":"microsoft/playwright-mcp","stars":31088
 cat > "$DIR/semantic.json" <<JSON
 {"mode":"semantic","query":"q","routing":{"category":"browser_automation","scope":"category","confidence":0.97,"candidates_considered":40,"rounds":1},
  "results":[{"service":$service,"attribution":null,"highlights":$highlights,
-   "score":{"success_rate":0,"signal_count":0,"fit":0.96,"best_fit_share":0.7,"quality":0.9}}]}
+   "score":{"success_rate":0,"signal_count":0,"rating_average":4,"rating_count":2,"fit":0.96,"best_fit_share":0.7,"quality":0.9}}]}
 JSON
 cat > "$DIR/embedding.json" <<JSON
 {"mode":"embedding","query":"q","note":"this key's 100 judged searches for today are used up, so results are not judged until 00:00 UTC",
  "results":[{"service":$service,"attribution":{"glama_url":"https://glama.ai/mcp/servers/x","credit":"Data from Glama"},"highlights":$highlights,
-   "score":{"success_rate":0,"signal_count":0,"similarity":0.658,"quality":0.9}}]}
+   "score":{"success_rate":0,"signal_count":0,"rating_average":null,"rating_count":0,"similarity":0.658,"quality":0.9}}]}
 JSON
 cat > "$DIR/keyword.json" <<JSON
 {"mode":"keyword","query":"q","results":[{"service":$service,"attribution":null,"highlights":$highlights,"score":{"success_rate":0,"signal_count":0}}]}
@@ -57,6 +57,7 @@ out=$(search semantic)
 check "$(jq -r .mode <<<"$out")" semantic "semantic: mode"
 check "$(jq -c '.results[0] | [.fit, .best_fit_share, .quality]' <<<"$out")" "[0.96,0.7,0.9]" "semantic: fit, share and quality kept"
 check "$(jq -r '.results[0] | has("similarity")' <<<"$out")" false "semantic: no similarity key"
+check "$(jq -c '.results[0] | [.rating_average, .rating_count]' <<<"$out")" "[4,2]" "semantic: rating average and count kept"
 check "$(jq -r 'has("note")' <<<"$out")" false "semantic: no note key"
 check "$(jq -r .routing.category <<<"$out")" browser_automation "semantic: routing kept"
 
@@ -65,6 +66,7 @@ check "$(jq -r .mode <<<"$out")" embedding "embedding: mode"
 check "$(jq -r .note <<<"$out")" "this key's 100 judged searches for today are used up, so results are not judged until 00:00 UTC" "embedding: note kept"
 check "$(jq -c '.results[0] | [.similarity, .quality]' <<<"$out")" "[0.658,0.9]" "embedding: similarity and quality kept"
 check "$(jq -r '.results[0] | has("fit")' <<<"$out")" false "embedding: no fit key"
+check "$(jq -c '.results[0] | [has("rating_average"), .rating_count]' <<<"$out")" "[false,0]" "embedding: a null average is dropped, the count kept"
 check "$(jq -r 'has("routing")' <<<"$out")" false "embedding: no routing key"
 check "$(jq -r '[.credit, .results[0].glama_url] | join(" | ")' <<<"$out")" "Data from Glama | https://glama.ai/mcp/servers/x" "embedding: Glama credit and link kept"
 

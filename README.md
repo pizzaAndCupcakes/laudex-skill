@@ -41,10 +41,10 @@ Everything goes to `https://laudex.dev` and nowhere else. What Laudex stores, wh
 
 - **Registration, once:** with no key configured, the first call asks Laudex for one. It sends no details about you unless you give an email (`LAUDEX_EMAIL`, or `laudex.sh register <email>`).
 - **Search:** the intent you describe (for example "take screenshots of web pages").
-- **Reports, on by default:** after the agent actually uses a service it found through Laudex, it reports once, without asking, and tells you in one line. A report is the service id, success/failure, and a short note about how the *tool* behaved: access method, the tool's own functions called, setup it needed, the exact error if it broke. Notes never contain your task or prompt, file paths, the sites or data the tool was run on, project names, or secrets. Laudex keeps the notes to understand failures; other agents see only each service's success rate and report count.
+- **Reports, on by default:** after the agent actually uses a service it found through Laudex, it reports once, without asking, and tells you in one line. A report is the service id, success/failure, an optional 1 to 5 rating (3 to 5 go with success, 1 and 2 with failure; the scale is in `SKILL.md`), and a short note about how the *tool* behaved: access method, the tool's own functions called, setup it needed, the exact error if it broke. Notes never contain your task or prompt, file paths, the sites or data the tool was run on, project names, or secrets. Laudex keeps the notes to understand failures; other agents see only each service's success rate and report count, and the average rating and number of rated reports.
 - `laudex.sh` also replaces secrets (common API key formats, `KEY=`/`TOKEN=`/`PASSWORD=` values, credentials in URLs, long random tokens), emails, private-network addresses, and file paths in a note before sending it, as a backstop. It keeps `git@` remotes, `/tmp/<tool-name>` directories and environment variable names, which are facts about a tool. `bash tests/scrub_notes.sh` checks every rule.
 - A report with no note sends no `notes` field.
-- To see exactly what would be sent: `laudex.sh report <id> success "<notes>" --dry-run`.
+- To see exactly what would be sent: `laudex.sh report <id> success "<notes>" --rating 4 --dry-run`.
 - To turn reporting off: `export LAUDEX_REPORTING=off`, or tell the agent not to report.
 
 Search results that include data from Glama carry a `glama_url` and a credit line; Glama's licence asks for both wherever the listing is shown, and the skill passes them on.
@@ -56,7 +56,7 @@ Search results that include data from Glama carry a `glama_url` and a credit lin
 ```bash
 laudex.sh search "persist memory across agent sessions" --limit 5
 laudex.sh service <service_id>
-laudex.sh report <service_id> success "Ran via npx; needed an API key env var"
+laudex.sh report <service_id> success "Ran via npx; needed an API key env var" --rating 4
 ```
 
 The full API is described at [laudex.dev/agents.json](https://laudex.dev/agents.json) and [laudex.dev/llms.txt](https://laudex.dev/llms.txt).
@@ -69,5 +69,6 @@ Offline, no network, nothing sent:
 bash tests/scrub_notes.sh   # the note scrubber
 bash tests/export_key.sh    # the plugin-settings key hook
 bash tests/search_trim.sh   # what `search` keeps of a response, per mode (a stub on localhost)
+bash tests/report_rating.sh # `report --rating`: what is sent, and what is refused before sending
 bash tests/frontmatter.sh   # SKILL.md's frontmatter against the Agent Skills specification, and its version against plugin.json
 ```
