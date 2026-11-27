@@ -3,7 +3,7 @@
 #
 #   laudex.sh search "<intent>" [--type mcp_server|api|tool|saas|other] [--limit N]
 #   laudex.sh service <service_id>
-#   laudex.sh report <service_id> success|failure "<notes>" [--rating 1-5] [--dry-run]
+#   laudex.sh report <service_id> success|failure "<notes>" [--rating 1-5] [--public] [--dry-run]
 #   laudex.sh register [email]
 #
 # API key: $LAUDEX_API_KEY (the plugin's SessionStart hook sets it from the
@@ -13,6 +13,9 @@
 # LAUDEX_REPORTING=off turns report into a no-op; --dry-run prints what it would send.
 # --rating is optional: a whole number from 1 to 5, 3 to 5 with success, 1 and 2 with
 # failure (the scale is in SKILL.md). A rating the server would refuse is refused here.
+# --public shows the report on the service's laudex.dev listing page as a review (rating,
+# outcome, date and note; nothing that says who sent it). Only with the user's say-so.
+# It needs a note, and is refused here without one.
 
 set -euo pipefail
 
@@ -80,7 +83,8 @@ call() {
   cat "$out"; rm -f "$out"
 }
 
-# Notes leave this machine (Laudex keeps them; other agents see only totals).
+# Notes leave this machine (Laudex keeps them; other agents see only totals, unless the
+# report is sent with --public, which shows the note on the listing page).
 # SKILL.md tells the agent what to leave out;
 # this is the backstop for what slips through: secrets, emails, private-network
 # addresses and the user's file paths are replaced, newlines are flattened, and
@@ -177,12 +181,13 @@ case "$cmd" in
     call GET "/api/services/$1"
     ;;
   report)
-    [ $# -ge 2 ] || die 'usage: laudex.sh report <service_id> success|failure "<notes>" [--rating 1-5] [--dry-run]'
+    [ $# -ge 2 ] || die 'usage: laudex.sh report <service_id> success|failure "<notes>" [--rating 1-5] [--public] [--dry-run]'
     id="$1"; outcome="$2"; shift 2
-    raw=""; dry=0; rating=""; rating_given=0
+    raw=""; dry=0; rating=""; rating_given=0; public=0
     while [ $# -gt 0 ]; do
       case "$1" in
         --dry-run) dry=1; shift ;;
+        --public) public=1; shift ;;
         --rating)
           [ $# -ge 2 ] || die "--rating needs a whole number from 1 to 5"
           rating="$2"; rating_given=1; shift 2 ;;
@@ -218,11 +223,17 @@ case "$cmd" in
       notes="${notes:0:$NOTES_MAX}"
       echo "laudex: notes cut to $NOTES_MAX characters" >&2
     fi
+    # A public review is the note, so the server refuses one without; refused here first.
+    if [ "$public" = 1 ] && [ -z "$(printf '%s' "$notes" | tr -d '[:space:]')" ]; then
+      die "--public needs a note: a public review is the note, shown on the listing page"
+    fi
     # No note means no notes field, rather than an empty string stored as one;
-    # likewise no rating means no rating field (the server reads it as "not given").
+    # likewise no rating means no rating field (the server reads it as "not given"),
+    # and a private report sends no public field.
     fields=(service_id "$id" success "json:$ok")
     [ "$rating_given" = 0 ] || fields+=(rating "json:$rating")
     [ -z "$notes" ] || fields+=(notes "$notes")
+    [ "$public" = 0 ] || fields+=(public "json:true")
     body=$(json_obj "${fields[@]}")
     if [ "$dry" -eq 1 ]; then
       printf '%s\n' "$body"

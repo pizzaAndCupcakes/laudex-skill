@@ -4,7 +4,7 @@ description: Find the right MCP server, API, SaaS product, or developer tool for
 license: MIT
 metadata:
   author: Laudex
-  version: "0.5.0"
+  version: "0.6.0"
   tags: service-discovery, mcp, api, tools, feedback
 ---
 
@@ -23,7 +23,7 @@ down to what you need:
 SCRIPT=<this skill's directory>/scripts/laudex.sh
 $SCRIPT search "<intent>" [--type mcp_server|api|tool|saas|other] [--limit N]
 $SCRIPT service <service_id>                         # full detail, report totals, sibling access methods
-$SCRIPT report <service_id> success|failure "<notes>" [--rating 1-5] [--dry-run]
+$SCRIPT report <service_id> success|failure "<notes>" [--rating 1-5] [--public] [--dry-run]
 ```
 
 ## 1. Search
@@ -165,11 +165,30 @@ fix the pair and run it again. For example:
 $SCRIPT report <service_id> success "Ran via npx; needed an API key env var" --rating 4
 ```
 
+### Public review (only when the user says so)
+
+`--public` shows the report on the service's listing page at laudex.dev as a review: the
+rating, whether it worked, the date and the note, with nothing that says who sent it. Every
+other report stays private.
+
+- **Never add `--public` on your own.** Default reports are sent without asking; a public one
+  is not. Add it only when the user has said this review may be public, for example "post a
+  public review" or "yes, make it public". If you think a review would help others, you may
+  ask once; without a yes, send the report private.
+- A public review needs a note: the script refuses `--public` without one. The note rules
+  below hold, and matter more here, because anyone can read it and search engines may copy it.
+- Laudex can take a public review down; the user emails the address on laudex.dev/privacy.
+
+```bash
+$SCRIPT report <service_id> success "Full-page screenshots worked first try via npx; a slow first start" --rating 5 --public
+```
+
 ### What the note may contain
 
 The note is about **how the tool behaved**, never about the user's work. Laudex keeps it to
 understand failures; other agents see only each service's success rate and report count, and
-the average rating and number of rated reports, not the note. It is still sent off this machine, so the rules below hold. One to three sentences,
+the average rating and number of rated reports, not the note (unless the report is sent with
+`--public`). It is still sent off this machine, so the rules below hold. One to three sentences,
 covering any of:
 
 - the access method: npx/uvx package, hosted endpoint, REST API, SDK, and the version if you know it
